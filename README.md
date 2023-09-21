@@ -1,6 +1,6 @@
 # gizmos
 
-Translations of existing scripts to ZSH for personal use.
+Modifications of existing scripts to ZSH, configuration files, and other resources for personal use.
 
 Sources:
 
