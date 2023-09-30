@@ -18,10 +18,17 @@ fn ls  { |@a| e:exa --group-directories-first --sort new $@a }
 fn lt  { |@a| e:exa --tree $@a }
 fn lk  { |@a| cd (e:walk $@a) }
 fn rm  { |@a| put 'Use 'del', or the full path i.e. '/bin/rm'' }
-fn dl { |@a| e:trash $@a }
+fn dl  { |@a| e:trash $@a }
 fn cat { |@a| e:bat --style=plain --paging=never --theme base16 $@a }
-fn ssh { |@a| tmp E:TERM = 'xterm-256color'; e:sdm ssh wrapped-run $@a }
-fn scp { |@a| e:scp -S'sdm' -osdmSCP $@a }
+fn _sdm_is_linked { put (==s (sdm ready 2>&1 | jq -r .is_linked) "true") }
+fn ssh { |@a|
+  if (_sdm_is_linked) { tmp E:TERM = 'xterm-256color'; e:sdm ssh wrapped-run $@a
+  } else { put "sdm: Not logged in" }
+}
+fn scp { |@a|
+  if (==s (sdm ready 2>&1 | jq -r .is_linked) "true") { tmp E:TERM = 'xterm-256color'; e:scp -S'sdm' -osdmSCP $@a
+  } else { put "sdm: Not logged in" }
+}
 
 fn mess { |@a|
   # use str
@@ -67,33 +74,45 @@ fn prompt-pwd {
 
 set edit:prompt = {
   # Current working directory
-  styled (prompt-pwd) 'blue'
-  put ' '
+  styled (prompt-pwd)' ' 'blue'
 
-  # Current Git branch
   var _git_info = (git:status)
   if $_git_info[is-git-repo] {
-    styled '⎇ '$_git_info[branch-name] 'green'
-    put ' '
+    # Current Git branch
+    styled '⎇ '$_git_info[branch-name]' ' 'green'
+
+    # Rich repo status in prompt readline
+    var _git_flags = ''
+    var _is_staged = { or (!= 0 (count $_git_info['staged-added'])) (!= 0 (count $_git_info['staged-deleted'])) (!= 0 (count $_git_info['staged-modified'])) }
+
+    if (!= 0 (count $_git_info[untracked]))      { set _git_flags = $_git_flags'?' }  # ? — untracked changes;
+    if ($_is_staged)                             { set _git_flags = $_git_flags'+' }  # + — uncommitted changes in the index;
+    if (!= 0 (count $_git_info[local-modified])) { set _git_flags = $_git_flags'!' }  # ! — unstaged changes;
+    if (!= 0 (count $_git_info[renamed]))        { set _git_flags = $_git_flags'»' }  # » — renamed files;
+    if (!= 0 (count $_git_info[local-deleted]))  { set _git_flags = $_git_flags'✘' }  # ✘ — deleted files;
+    #   $ — stashed changes [WIP];
+    if (!= 0 (count $_git_info[unmerged]))       { set _git_flags = $_git_flags'§' }  # § — unmerged changes;
+    if (!= 0        $_git_info[rev-ahead])       { set _git_flags = $_git_flags'⇡' }  # ⇡ — ahead of remote branch;
+    if (!= 0        $_git_info[rev-behind])      { set _git_flags = $_git_flags'⇣' }  # ⇣ — behind of remote branch;
+    #   ⇕ — diverged changes.
+
+    if (!= 0 (count $_git_flags)) { styled '['$_git_flags'] ' 'yellow' }
+
+    # Current Git SHA
+    # styled $_git_info[branch-oid][..8]' ' 'white'
+
+    # Colorized time since last commit
   }
-
-  # Rich repo status in prompt readline
-  #   ? — untracked changes;
-  #   + — uncommitted changes in the index;
-  #   ! — unstaged changes;
-  #   » — renamed files;
-  #   ✘ — deleted files;
-  #   $ — stashed changes [WIP];
-  #   § — unmerged changes;
-  #   ⇡ — ahead of remote branch;
-  #   ⇣ — behind of remote branch;
-  #   ⇕ — diverged changes.
-
-  # Current Git SHA
-
-  # Colorized time since last commit
 
   # A red marker (✗) if last command exits with non-zero code.
 
   put $prompt-char
 }
+
+set edit:rprompt = {
+  var _git_info = (git:status)
+  if $_git_info[is-git-repo] {
+    styled $_git_info[branch-oid] 'white'
+  }
+}
+# set edit:rprompt = (constantly (styled (whoami)@(hostname) inverse))
