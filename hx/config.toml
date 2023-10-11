@@ -1,6 +1,6 @@
-# hx --grammars [fetch/build]
-
-theme = "catppuccin_macchiato"
+# theme = "catppuccin_frappe"
+# theme = "fleet_dark"
+theme = "rose_pine_moon"
 
 [editor]
 scroll-lines = 1
@@ -13,7 +13,8 @@ auto-pairs = true
 rulers = [120]
 idle-timeout = 50
 line-number = "relative"
-bufferline = "multiple"
+undercurl = true
+bufferline = "always"
 
 [editor.cursor-shape]
 insert = "bar"
@@ -25,6 +26,7 @@ render = true
 character = "▏"
 
 [editor.lsp]
+enable = true
 display-messages = true
 display-inlay-hints = true
 
@@ -32,7 +34,12 @@ display-inlay-hints = true
 left = ["mode", "spinner", "file-type", "total-line-numbers", "file-encoding"]
 center = ["file-name"]
 right = ["selections", "primary-selection-length", "position", "position-percentage", "spacer", "diagnostics", "workspace-diagnostics", "version-control"]
-# separator = "│"
 mode.normal = "RW"
 mode.insert = "**"
 mode.select = "SL"
+
+[editor.whitespace.render]
+nbsp = "all"
+
+[editor.whitespace.characters]
+nbsp = "⍽"
