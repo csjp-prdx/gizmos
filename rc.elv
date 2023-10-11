@@ -1,10 +1,5 @@
 set-env EDITOR 'hx'
 
-# set-env GOPATH '/opt/homebrew/bin/go'
-# set-env GOROOT $E:HOME'/go'
-# set-env GOBIN  $E:GOROOT'/bin'
-
-# set env:PATH=$env:GOROOT'/bin:'$env:HOME'/bin:'$env:GOBIN':/usr/local/bin:/usr/local/sbin:/usr/local/opt/ruby/bin:'$env:HOME'/.fzf/bin:'$env:PATH
 set-env PATH   $E:HOME'/.local/bin:'$E:PATH
 set-env PATH   '/usr/local/bin:'$E:PATH
 set-env PATH   '/opt/homebrew/bin:'$E:PATH
