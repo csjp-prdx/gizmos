@@ -24,6 +24,11 @@ function color {
 }
 
 function colored {
+	if [[ "$COLORTERM" != truecolor ]] && [[ "$COLORTERM" != 24bit ]]; then
+		printf "%s" "$@"
+		exit
+	fi
+
 	opt=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 	opt=$(color $opt)
 	[ $DEBUG_COLORED ] && printf "%s\n" "$opt"

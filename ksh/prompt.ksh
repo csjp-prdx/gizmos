@@ -19,11 +19,12 @@ function prompt {
   fi
 
   dir=$(printf "%s${IFS}" "$@")
-  _prompt="${_prompt} $(colored BRIGHT_YELLOW " ${dir} ")"
+  _prompt="${_prompt}$(colored BRIGHT_YELLOW " ${dir} ")"
 
   branch=$(git_branch)
   if [[ "$?" -eq 0 ]]; then
-    _prompt="${_prompt} $(colored BRIGHT_BLUE " ${branch} ")"
+    _prompt="${_prompt} "  # insert space
+    _prompt="${_prompt}$(colored BRIGHT_BLUE " ${branch} ")"
   fi
 
   printf "$_prompt" "$_prev_stat"
