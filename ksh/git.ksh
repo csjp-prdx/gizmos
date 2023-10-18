@@ -1,4 +1,4 @@
-#!/usr/bin/env ksh
+#!/bin/ksh
 
 function git_root {
 	root=$(git rev-parse --show-toplevel 2>/dev/null)

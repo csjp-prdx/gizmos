@@ -1,0 +1,104 @@
+# DEBUG=y
+[ "$DEBUG" ] && echo "Entering .kshrc"
+
+set -o allexport
+
+# options for all shells --------------------------------
+# LIBPATH must be here because ksh is setuid, and LIBPATH is
+# cleared when setuid programs are started, due to security hole.
+
+# LIBPATH=.:/local/lib:/lib:/usr/lib
+
+# options for interactive shells follow-------------------------
+
+TTY=$(tty|cut -f3-4 -d/)
+HISTFILE=$HOME/.sh_hist$(echo ${TTY} | tr -d '/')
+PWD=$(pwd)
+
+source ~/.config/ksh/prompt.ksh
+PS1='[${LOGNAME}] $(prompt) $ '
+
+# aliases
+
+[ "$DEBUG" ] && echo "Setting aliases"
+alias sane="stty sane"
+alias rsz='eval $(resize)'
+# alias ls='exa --group-directories-first --sort name'
+# alias ll='exa --group-directories-first --sort new'
+# alias lt='exa --tree'
+# alias cat='bat --style=plain --paging=never --theme=ansi'
+alias ..='cd ..'
+alias ...='cd ...'
+# alias type='whence -v'
+# alias rm='echo "Use \"del\" instead."'
+# alias del='trash'
+
+alias __A=`echo "\020"`     # up arrow = ^p = back a command
+alias __B=`echo "\016"`     # down arrow = ^n = down a command
+alias __C=`echo "\006"`     # right arrow = ^f = forward a character
+alias __D=`echo "\002"`     # left arrow = ^b = back a charactoe
+alias __H=`echo "\001"`     # home = ^a = start of line
+alias __Y=`echo "\005"`     # end = ^e = end of line
+
+# functions
+
+[ "$DEBUG" ] && echo "Setting functions"
+
+function pid { ps -e | grep $@ | cut -d" " -f1; }
+
+# function lk { cd "$(walk "$@")"; }
+
+function term {
+  if [ $# -eq 1 ]; then
+    echo $TERM
+    TERM=$1
+    export TERM
+  fi
+  echo $TERM
+}
+
+function back {
+  cd $OLDPWD
+  echo $CWD $OLDPWD
+}
+
+function mess {
+  messpath="${HOME}/mess"      # $HOME/mess
+  now="$(date '+%Y/%V')"             # yyyy/ISO_week_number
+  current="${messpath}/${now}" # $HOME/mess/yyyy/ISO_week_number
+  link="${messpath}/current"   # $HOME/mess/current
+
+  # If "$current" does not exist, create it.
+  if [[ ! -d "$current" ]]
+  then
+    mkdir -p "$current"
+    echo "Created ${now}"
+  fi
+
+  # If "$link" exists and is not a symlink, something is wrong.
+  if [[ -e "$link" ]] && [[ ! -L "$link" ]]; then
+    echo >&2 "${link} is not a symlink; something is wrong."
+  else
+    # If "$link" and "$current" are not equivalent directories, then re-symlink
+    # "$link" to "$current".
+    if [[ ! "$link" -ef "$current" ]]
+    then
+      unlink "$link"
+      ln -s "$current" "$link"
+    fi
+
+    if [[ -d "$link" ]]; then
+      cd "$link" || return
+    else
+      cd "$current" || return
+    fi
+  fi
+}
+
+[ "$DEBUG" ] && echo "Exiting .kshrc"
+
+set +o allexport
+
+set -o emacs
+
+eval "$(zoxide init posix --hook prompt)"

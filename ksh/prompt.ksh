@@ -1,57 +1,32 @@
-#!/usr/bin/env ksh
+#!/bin/ksh
 
-source ~/.config/ksh/colored.ksh
+source ~/.config/ksh/shortdir.ksh
+source ~/.config/ksh/git.ksh
 
-function shortenDirs {
-  shortenTo=1
-  j=$(($#-1))
+function prompt {
+  _prompt=""
 
-  for i in "$@"; do
-    if [[ $j -gt 0 ]]; then
-      first=$(printf "%.1s" "$i")
-
-      if [[ "$first" = "." ]]; then
-        printf "%.${((shortenTo+1))}s${IFS}" "$i"
-      else
-        printf "%.${shortenTo}s${IFS}" "$i"
-      fi
-
-    else
-      printf "%s" "$i"
-    fi
-
-    j=$((j-1))
-  done
-}
-
-function replaceHome {
-  if [[ "${IFS}${1}${IFS}${2}" = "$HOME" ]]; then
-    shift && shift
-    printf "%s" "~"
-    printf "${IFS}%s" "$@"
-  else
-    printf "${IFS}%s" "$@"
-  fi
-}
-
-function shortdir {
   IFS='/'
   set -- $PWD
   if [[ "$1" = "" ]]; then shift; fi
-  # logPrint "$@"
 
   replaceHome="$(replaceHome "$@")"
   set -- $replaceHome
-  # logPrint "$@"
 
   if [[ $# -gt 2 ]]; then
     shortenDirs="$(shortenDirs "$@")"
     set -- $shortenDirs
-    # logPrint "$@"
   fi
 
-  msg=$(printf "%s${IFS}" "$@")
-  printf "$(colored BRIGHT_YELLOW " ${msg} ")"
+  dir=$(printf "%s${IFS}" "$@")
+  _prompt="${_prompt} $(colored BRIGHT_YELLOW " ${dir} ")"
+
+  branch=$(git_branch)
+  if [[ "$?" -eq 0 ]]; then
+    _prompt="${_prompt} $(colored BRIGHT_BLUE " ${branch} ")"
+  fi
+
+  printf "$_prompt" "$_prev_stat"
 }
 
-[ $TEST ] && shortdir
+[ $DEBUG ] && prompt
