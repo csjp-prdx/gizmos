@@ -1,7 +1,7 @@
 #!/bin/ksh
 
-source ~/.config/ksh/shortdir.ksh
-source ~/.config/ksh/git.ksh
+. ~/.config/ksh/shortdir.ksh
+. ~/.config/ksh/git.ksh
 
 function prompt {
   _prompt=""
@@ -19,12 +19,16 @@ function prompt {
   fi
 
   dir=$(printf "%s${IFS}" "$@")
-  _prompt="${_prompt}$(colored BRIGHT_YELLOW " ${dir} ")"
+  [ -z $DISABLE_PROMPT_COLOR ] &&
+    _prompt="${_prompt}$(colored BRIGHT_YELLOW " ${dir} ")" ||
+    _prompt="${_prompt}${dir}"
 
   branch=$(git_branch)
   if [[ "$?" -eq 0 ]]; then
     _prompt="${_prompt} "  # insert space
-    _prompt="${_prompt}$(colored BRIGHT_BLUE " ${branch} ")"
+    [ -z $DISABLE_PROMPT_COLOR ] &&
+      _prompt="${_prompt}$(colored BRIGHT_BLUE " ${branch} ")" ||
+      _prompt="${_prompt}[${branch}]"
   fi
 
   printf "$_prompt" "$_prev_stat"
