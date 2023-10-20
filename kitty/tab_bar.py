@@ -19,18 +19,17 @@ from kitty.utils import color_as_int
 
 timer_id = None
 
-# ICON = "  "
-ICON = " > "
-RIGHT_MARGIN = 2
+ICON = " ▷ "  # ICON = "  "
+RIGHT_MARGIN = 0
 REFRESH_TIME = 15
 
 icon_fg = as_rgb(color_as_int(Color(255, 250, 205)))
 icon_bg = as_rgb(color_as_int(Color(47, 61, 68)))
 # OR icon_bg = as_rgb(0x2f3d44)
 bat_text_color = as_rgb(0x999F93)
-clock_color = as_rgb(0x7FBBB3)
+clock_color = as_rgb(0xDDE4F2)
 sep_color = as_rgb(0x999F93)
-utc_color = as_rgb(color_as_int(Color(113, 115, 116)))
+utc_color = as_rgb(0xF1DDF1)
 
 
 # cells = [
@@ -72,32 +71,18 @@ def _draw_left_status(
     is_last: bool,
     extra_data: ExtraData,
 ) -> int:
-    # print(extra_data)
-    if draw_data.leading_spaces:
-        screen.draw(" " * draw_data.leading_spaces)
-
     draw_title(draw_data, screen, tab, index)
 
-    trailing_spaces = min(max_title_length - 1, draw_data.trailing_spaces)
+    trailing_spaces = min(max_title_length - 2, draw_data.trailing_spaces)
     max_title_length -= trailing_spaces
     extra = screen.cursor.x - before - max_title_length
 
     if extra > 0:
-        screen.cursor.x -= extra + 1
-        screen.draw("…")
-
-    if trailing_spaces:
-        screen.draw(" " * trailing_spaces)
+        screen.cursor.x -= extra + 2
+        screen.draw("… ")
 
     end = screen.cursor.x
-    screen.cursor.bold = screen.cursor.italic = False
-    screen.cursor.fg = 0
 
-    if not is_last:
-        screen.cursor.bg = as_rgb(color_as_int(draw_data.inactive_bg))
-        screen.draw(draw_data.sep)
-
-    screen.cursor.bg = 0
     return end
 
 
@@ -105,10 +90,8 @@ def _draw_right_status(screen: Screen, is_last: bool) -> int:
     if not is_last:
         return 0
 
-    draw_attributed_string(Formatter.reset, screen)
-
-    clock = datetime.now().strftime("%-I:%M")
-    utc = datetime.now(timezone.utc).strftime(" (UTC %H:%M)")
+    clock = datetime.now().strftime(" %-I:%M ")
+    utc = datetime.now(timezone.utc).strftime(" (UTC %H:%M) ")
 
     cells = []
 
@@ -120,18 +103,28 @@ def _draw_right_status(screen: Screen, is_last: bool) -> int:
     for cell in cells:
         right_status_length += len(str(cell[1]))
 
+    # Put the _right_status on the right side of the sreen
     draw_spaces = screen.columns - screen.cursor.x - right_status_length
+
+    # * Save the current background color
+    _fg, _bg = screen.cursor.fg, screen.cursor.bg
+
+    screen.cursor.bg = min(screen.cursor.fg, screen.cursor.bg)
 
     if draw_spaces > 0:
         screen.draw(" " * draw_spaces)
+    # --
 
-    screen.cursor.fg = 0
+    screen.cursor.fg = screen.cursor.bg
 
+    # Draw each cell with its defined background color
     for color, status in cells:
-        screen.cursor.fg = color  # as_rgb(color_as_int(color))
+        screen.cursor.bg = color
         screen.draw(status)
 
-    screen.cursor.bg = 0
+    # * Reset the background color
+    screen.cursor.fg, screen.cursor.bg = _fg, _bg
+    # --
 
     if screen.columns - screen.cursor.x > right_status_length:
         screen.cursor.x = screen.columns - right_status_length
@@ -149,7 +142,7 @@ def draw_tab(
     is_last: bool,
     extra_data: ExtraData,
 ) -> int:
-    _draw_icon(screen, index)
+    # _draw_icon(screen, index)
     _draw_left_status(
         draw_data,
         screen,
